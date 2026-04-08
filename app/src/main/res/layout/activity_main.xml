@@ -6,20 +6,213 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- 1. 最底层：相机原始预览 -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <Button
-        android:id="@+id/capture_button"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_marginBottom="50dp"
-        android:text="拍照打印"
-        android:elevation="2dp"
+    <!-- 2. 中间层：实时点阵效果叠加 -->
+    <ImageView
+        android:id="@+id/preview_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:background="#000000"
+        android:visibility="gone" />
+
+    <!-- 3. UI 交互层 -->
+    <LinearLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#80000000"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/printerStatusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="正在寻找打印机..."
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_reconnect"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:backgroundTint="#2196F3"
+            android:paddingHorizontal="12dp"
+            android:text="手动连接"
+            android:textAllCaps="false"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_settings"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="20dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="设置"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_menu_sort_by_size"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_bar"
+        app:tint="#FFFFFF" />
+
+    <!-- 左下角点单按钮 -->
+    <ImageButton
+        android:id="@+id/btn_open_order"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="20dp"
+        android:background="@android:color/transparent"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_menu_add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:tint="#FF4081" />
+
+    <!-- 底部拍照区域 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <View
+            android:id="@+id/capture_button_bg"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/circle_button_bg"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/capture_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_camera"
+            app:layout_constraintBottom_toBottomOf="@id/capture_button_bg"
+            app:layout_constraintLeft_toLeftOf="@id/capture_button_bg"
+            app:layout_constraintRight_toRightOf="@id/capture_button_bg"
+            app:layout_constraintTop_toTopOf="@id/capture_button_bg"
+            app:tint="#FFFFFF" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 4. 点单面板 (默认隐藏) -->
+    <LinearLayout
+        android:id="@+id/order_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F5F5F5"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="快速点单模式"
+                android:textColor="#333333"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+            <ImageButton
+                android:id="@+id/btn_close_order"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentRight="true"
+                android:background="@android:color/transparent"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FF0000" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_order_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="#EEEEEE"
+            android:padding="16dp"
+            android:text="等待点单..."
+            android:textColor="#666666"
+            android:textSize="18sp" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:columnCount="2"
+            android:rowCount="3">
+
+            <Button
+                android:id="@+id/btn_pork"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="PORK"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_buns"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="BUNS"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_skewer"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="SKEWER"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_ricecake"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="RICE CAKE"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_chicken"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="CHICKEN"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_strick"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:text="STRICK"
+                android:textSize="16sp" />
+        </GridLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
